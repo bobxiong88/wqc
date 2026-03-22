@@ -58,13 +58,13 @@ http://localhost:8000
 
 ## GitHub Pages
 
-This repo is set up to publish directly as a static site from the `main` branch.
+This repo is set up to publish through a GitHub Actions workflow.
 
 In GitHub:
 
 1. Open `Settings -> Pages`.
-2. Under `Build and deployment`, set `Source` to `Deploy from a branch`.
-3. Set `Branch` to `main` and folder to `/ (root)`.
+2. Under `Build and deployment`, set `Source` to `GitHub Actions`.
+3. Push to `main` to trigger the deploy workflow.
 
 Once that is enabled, pushes to `main` will automatically update:
 
@@ -76,7 +76,8 @@ https://bobxiong88.github.io/wqc/
 
 1. Start the server with `./serve.sh`.
 2. Open `http://localhost:8000`.
-3. Switch between `Game 2: Octomarket`, `Game 3: Triplets`, and `Game 5: Auction` using the tabs at the top.
+3. Use the home page to open `Game 2: Octomarket`, `Game 3: Triplets`, or `Game 5: Auction`.
+4. Enter the board password when prompted.
 
 ### Octomarket
 
