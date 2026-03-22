@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WQC Trading Helpers</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <h1>WQC Trading Helpers</h1>
+          <p>Game 2, Game 3, and Game 5 in one board</p>
+        </div>
+        <div class="tablist" role="tablist" aria-label="Game Tabs">
+          <button
+            id="tab-octo"
+            class="tab-button is-active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="view-octo"
+          >
+            Game 2: Octomarket
+          </button>
+          <button
+            id="tab-triplets"
+            class="tab-button"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="view-triplets"
+          >
+            Game 3: Triplets
+          </button>
+          <button
+            id="tab-auction"
+            class="tab-button"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="view-auction"
+          >
+            Game 5: Auction
+          </button>
+        </div>
+      </header>
+
+      <section id="view-octo" class="view is-active" role="tabpanel" aria-labelledby="tab-octo">
+        <section class="workspace">
+          <section class="panel input-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Octomarket Rolls</h2>
+                <span class="panel-note">Blank or 1-20</span>
+              </div>
+              <div class="panel-actions">
+                <button id="load-sample" class="button button-primary" type="button">Sample</button>
+                <button id="clear-board" class="button button-secondary" type="button">Clear</button>
+              </div>
+            </div>
+
+            <div class="grid-labels">
+              <span>Min</span>
+              <span>A</span>
+              <span>B</span>
+            </div>
+            <div id="roll-inputs" class="roll-inputs"></div>
+            <div id="validation-message" class="validation hidden" role="alert"></div>
+          </section>
+
+          <section class="panel board-panel">
+            <div class="board-header">
+              <div class="board-topline">
+                <h2>Octomarket Board</h2>
+                <div id="engine-status" class="status-banner">Starting up...</div>
+              </div>
+              <div id="summary-grid" class="summary-grid"></div>
+            </div>
+            <div id="results-groups" class="results-groups"></div>
+          </section>
+        </section>
+      </section>
+
+      <section id="view-triplets" class="view" role="tabpanel" aria-labelledby="tab-triplets">
+        <section class="workspace">
+          <section class="panel input-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Triplets Inputs</h2>
+                <span class="panel-note">Rolls are 1-10</span>
+              </div>
+              <div class="panel-actions">
+                <button id="triplets-load-sample" class="button button-primary" type="button">Sample</button>
+                <button id="triplets-clear-board" class="button button-secondary" type="button">Clear</button>
+              </div>
+            </div>
+
+            <div class="triplets-form-grid">
+              <label class="field">
+                <span class="field-label">My event</span>
+                <select id="triplets-assignment" class="select-input">
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                </select>
+              </label>
+              <div class="formula-chip-wrap">
+                <span class="field-label">Combo identity</span>
+                <div id="triplets-formula" class="formula-chip">AB + AC - BC = 2A</div>
+              </div>
+            </div>
+
+            <div class="triplets-section">
+              <div class="triplets-section-head">
+                <h3>Observed rolls for my event</h3>
+                <span class="field-hint">Leave future rolls blank</span>
+              </div>
+              <div id="triplets-roll-inputs" class="triplets-roll-inputs"></div>
+            </div>
+
+            <div class="triplets-section">
+              <div class="triplets-section-head">
+                <h3>Current quotes</h3>
+                <span class="field-hint">Best bid and lowest ask</span>
+              </div>
+              <div class="triplets-market-grid">
+                <div class="quote-box">
+                  <span class="field-label">AB</span>
+                  <div class="quote-inputs">
+                    <label class="field">
+                      <span class="quote-label">Bid</span>
+                      <input id="triplets-bid-ab" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span class="quote-label">Ask</span>
+                      <input id="triplets-ask-ab" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                  </div>
+                </div>
+                <div class="quote-box">
+                  <span class="field-label">BC</span>
+                  <div class="quote-inputs">
+                    <label class="field">
+                      <span class="quote-label">Bid</span>
+                      <input id="triplets-bid-bc" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span class="quote-label">Ask</span>
+                      <input id="triplets-ask-bc" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                  </div>
+                </div>
+                <div class="quote-box">
+                  <span class="field-label">AC</span>
+                  <div class="quote-inputs">
+                    <label class="field">
+                      <span class="quote-label">Bid</span>
+                      <input id="triplets-bid-ac" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span class="quote-label">Ask</span>
+                      <input id="triplets-ask-ac" class="market-input" type="number" min="18" max="180" step="1" placeholder="-" inputmode="numeric" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="triplets-validation" class="validation hidden" role="alert"></div>
+          </section>
+
+          <section class="panel board-panel">
+            <div class="board-header">
+              <div class="board-topline">
+                <h2>Triplets Board</h2>
+                <div id="triplets-method" class="status-banner">Posterior mean</div>
+              </div>
+              <div id="triplets-summary-grid" class="summary-grid triplets-summary-grid"></div>
+            </div>
+            <div id="triplets-results" class="triplets-results"></div>
+          </section>
+        </section>
+      </section>
+
+      <section id="view-auction" class="view" role="tabpanel" aria-labelledby="tab-auction">
+        <section class="workspace">
+          <section class="panel input-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Infinite Auction Bids</h2>
+                <span class="panel-note">Blank or 0-100,000,000</span>
+              </div>
+              <div class="panel-actions">
+                <button id="auction-load-sample" class="button button-primary" type="button">Sample</button>
+                <button id="auction-clear-board" class="button button-secondary" type="button">Clear</button>
+              </div>
+            </div>
+
+            <div class="triplets-form-grid auction-form-grid">
+              <label class="field">
+                <span class="field-label">Round value</span>
+                <input
+                  id="auction-point-value"
+                  class="market-input"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.01"
+                  placeholder="4.30"
+                  inputmode="decimal"
+                />
+              </label>
+              <div class="formula-chip-wrap">
+                <span class="field-label">Safe bid rule</span>
+                <div class="formula-chip">phi(base + bid) - phi(base) &lt;= value</div>
+              </div>
+            </div>
+
+            <div id="auction-bid-inputs" class="auction-bid-inputs"></div>
+            <div id="auction-validation" class="validation hidden" role="alert"></div>
+          </section>
+
+          <section class="panel board-panel">
+            <div class="board-header">
+              <div class="board-topline">
+                <h2>Infinite Auction Board</h2>
+                <div id="auction-method" class="status-banner">B and phi(B)</div>
+              </div>
+              <div id="auction-summary-grid" class="summary-grid auction-summary-grid"></div>
+            </div>
+            <div id="auction-results" class="auction-results"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
