@@ -56,6 +56,22 @@ Then open:
 http://localhost:8000
 ```
 
+## GitHub Pages
+
+This repo is set up to publish directly as a static site from the `main` branch.
+
+In GitHub:
+
+1. Open `Settings -> Pages`.
+2. Under `Build and deployment`, set `Source` to `Deploy from a branch`.
+3. Set `Branch` to `main` and folder to `/ (root)`.
+
+Once that is enabled, pushes to `main` will automatically update:
+
+```text
+https://bobxiong88.github.io/wqc/
+```
+
 ## How to use it
 
 1. Start the server with `./serve.sh`.
