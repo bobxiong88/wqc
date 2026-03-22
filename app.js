@@ -139,14 +139,49 @@ const DECIMAL_FORMATTER = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+const SESSION_UNLOCK_KEY = "wqc-helper-unlocks";
+const GAME_ACCESS = {
+  octo: {
+    title: "Game 2: Octomarket",
+    shortTitle: "Octomarket",
+    subtitle: "Expected values, exact payout distributions, and full-board contract math.",
+    digest: "5633c9b8af6d089859afcbec42fdc03f8c407aaba9668218b433bd4959911465",
+  },
+  triplets: {
+    title: "Game 3: Triplets",
+    shortTitle: "Triplets",
+    subtitle: "Posterior event values, combo pricing, and live trade guidance.",
+    digest: "3cd108c9cdd7eac2a757e817d59d4513757921d99ab1f6090a15815d01f6ba25",
+  },
+  auction: {
+    title: "Game 5: Infinite Auction",
+    shortTitle: "Infinite Auction",
+    subtitle: "Bid penalty tracking, round-edge analysis, and safe bid cutoffs.",
+    digest: "d79987051a2552ac1895e06b97d12d8cfe5924872f61dba59c15552bcc832f9e",
+  },
+};
+const GAME_KEYS = Object.keys(GAME_ACCESS);
 
 const elements = {
-  tabOcto: document.getElementById("tab-octo"),
-  tabTriplets: document.getElementById("tab-triplets"),
-  tabAuction: document.getElementById("tab-auction"),
+  topbarTitle: document.getElementById("topbar-title"),
+  topbarSubtitle: document.getElementById("topbar-subtitle"),
+  topbarStatus: document.getElementById("topbar-status"),
+  homeButton: document.getElementById("home-button"),
+  viewHome: document.getElementById("view-home"),
   viewOcto: document.getElementById("view-octo"),
   viewTriplets: document.getElementById("view-triplets"),
   viewAuction: document.getElementById("view-auction"),
+  homeCards: Array.from(document.querySelectorAll("[data-game-card]")),
+  homeEnterButtons: Array.from(document.querySelectorAll(".home-enter-button")),
+  passwordModal: document.getElementById("password-modal"),
+  passwordGameLabel: document.getElementById("password-game-label"),
+  passwordTitle: document.getElementById("password-title"),
+  passwordDescription: document.getElementById("password-description"),
+  passwordForm: document.getElementById("password-form"),
+  passwordInput: document.getElementById("password-input"),
+  passwordMessage: document.getElementById("password-message"),
+  passwordSubmit: document.getElementById("password-submit"),
+  passwordCancel: document.getElementById("password-cancel"),
 
   rollInputs: document.getElementById("roll-inputs"),
   validationMessage: document.getElementById("validation-message"),
@@ -201,15 +236,20 @@ let renderQueued = false;
 let divisorStateTables = null;
 let divisorEngineStatus = "warming";
 let auctionSelectedIndex = null;
+let activeView = "home";
+let pendingUnlockGame = null;
+let unlockedGames = loadUnlockedGames();
 
 bootstrap();
 
 function bootstrap() {
-  bindTabs();
+  bindNavigation();
   createOctoRollInputs();
   createTripletsRollInputs();
   createAuctionBidInputs();
   bindButtons();
+  updateHomeCards();
+  setActiveView("home");
   scheduleRender();
 
   const warmUp = window.requestIdleCallback
@@ -229,26 +269,234 @@ function bootstrap() {
   });
 }
 
-function bindTabs() {
-  elements.tabOcto.addEventListener("click", () => setActiveView("octo"));
-  elements.tabTriplets.addEventListener("click", () => setActiveView("triplets"));
-  elements.tabAuction.addEventListener("click", () => setActiveView("auction"));
+function bindNavigation() {
+  elements.homeButton.addEventListener("click", () => setActiveView("home"));
+
+  elements.homeEnterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      requestGameAccess(button.dataset.gameTarget);
+    });
+  });
+
+  elements.passwordForm.addEventListener("submit", handlePasswordSubmit);
+  elements.passwordCancel.addEventListener("click", closePasswordGate);
+  elements.passwordInput.addEventListener("input", () => {
+    elements.passwordInput.classList.remove("is-invalid");
+    setPasswordMessage("");
+  });
+  elements.passwordModal.addEventListener("click", (event) => {
+    if (event.target === elements.passwordModal) {
+      closePasswordGate();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !elements.passwordModal.classList.contains("hidden")) {
+      closePasswordGate();
+    }
+  });
 }
 
 function setActiveView(viewName) {
+  if (viewName !== "home" && !unlockedGames[viewName]) {
+    openPasswordGate(viewName);
+    return;
+  }
+
+  activeView = viewName;
+  const showHome = viewName === "home";
   const showOcto = viewName === "octo";
   const showTriplets = viewName === "triplets";
   const showAuction = viewName === "auction";
 
+  elements.viewHome.classList.toggle("is-active", showHome);
   elements.viewOcto.classList.toggle("is-active", showOcto);
   elements.viewTriplets.classList.toggle("is-active", showTriplets);
   elements.viewAuction.classList.toggle("is-active", showAuction);
-  elements.tabOcto.classList.toggle("is-active", showOcto);
-  elements.tabTriplets.classList.toggle("is-active", showTriplets);
-  elements.tabAuction.classList.toggle("is-active", showAuction);
-  elements.tabOcto.setAttribute("aria-selected", showOcto ? "true" : "false");
-  elements.tabTriplets.setAttribute("aria-selected", showTriplets ? "true" : "false");
-  elements.tabAuction.setAttribute("aria-selected", showAuction ? "true" : "false");
+  elements.homeButton.classList.toggle("hidden", showHome);
+
+  updateTopbar();
+}
+
+function requestGameAccess(gameKey) {
+  if (!GAME_ACCESS[gameKey]) {
+    return;
+  }
+
+  if (unlockedGames[gameKey]) {
+    setActiveView(gameKey);
+    return;
+  }
+
+  openPasswordGate(gameKey);
+}
+
+function openPasswordGate(gameKey) {
+  const game = GAME_ACCESS[gameKey];
+  if (!game) {
+    return;
+  }
+
+  pendingUnlockGame = gameKey;
+  elements.passwordGameLabel.textContent = game.title;
+  elements.passwordTitle.textContent = `Unlock ${game.shortTitle}`;
+  elements.passwordDescription.textContent = `Enter the password for ${game.title}.`;
+  elements.passwordInput.value = "";
+  elements.passwordInput.classList.remove("is-invalid");
+  setPasswordMessage("");
+  elements.passwordModal.classList.remove("hidden");
+  elements.passwordModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+
+  window.setTimeout(() => {
+    elements.passwordInput.focus();
+  }, 0);
+}
+
+function closePasswordGate(options = {}) {
+  if (!options.force && elements.passwordSubmit.disabled) {
+    return;
+  }
+
+  pendingUnlockGame = null;
+  elements.passwordModal.classList.add("hidden");
+  elements.passwordModal.setAttribute("aria-hidden", "true");
+  elements.passwordInput.classList.remove("is-invalid");
+  setPasswordMessage("");
+  document.body.classList.remove("modal-open");
+}
+
+async function handlePasswordSubmit(event) {
+  event.preventDefault();
+
+  if (!pendingUnlockGame) {
+    return;
+  }
+
+  const targetGame = pendingUnlockGame;
+  const rawPassword = elements.passwordInput.value.trim();
+  if (rawPassword === "") {
+    elements.passwordInput.classList.add("is-invalid");
+    setPasswordMessage("Enter a password to continue.");
+    elements.passwordInput.focus();
+    return;
+  }
+
+  setPasswordControlsDisabled(true);
+
+  try {
+    const digest = await hashPassword(rawPassword);
+    if (digest === GAME_ACCESS[targetGame].digest) {
+      const unlockedGame = targetGame;
+      unlockedGames[unlockedGame] = true;
+      persistUnlockedGames();
+      updateHomeCards();
+      closePasswordGate({ force: true });
+      setActiveView(unlockedGame);
+      return;
+    }
+
+    elements.passwordInput.classList.add("is-invalid");
+    setPasswordMessage("Wrong password. Try again.");
+    elements.passwordInput.select();
+  } catch (error) {
+    console.error(error);
+    setPasswordMessage("Password checks are unavailable in this browser right now.");
+  } finally {
+    setPasswordControlsDisabled(false);
+  }
+}
+
+function setPasswordControlsDisabled(isDisabled) {
+  elements.passwordInput.disabled = isDisabled;
+  elements.passwordSubmit.disabled = isDisabled;
+  elements.passwordCancel.disabled = isDisabled;
+}
+
+function setPasswordMessage(message) {
+  elements.passwordMessage.textContent = message;
+  elements.passwordMessage.classList.toggle("hidden", message === "");
+}
+
+function updateHomeCards() {
+  elements.homeCards.forEach((card) => {
+    const gameKey = card.dataset.gameCard;
+    const isUnlocked = unlockedGames[gameKey] === true;
+    const status = card.querySelector(".home-card-status");
+    const note = card.querySelector(".home-card-note");
+    const button = card.querySelector(".home-enter-button");
+
+    card.classList.toggle("is-unlocked", isUnlocked);
+    status.textContent = isUnlocked ? "Unlocked" : "Locked";
+    note.textContent = isUnlocked ? "Ready for this browser session" : "Password required";
+    button.textContent = isUnlocked ? "Open Board" : "Unlock Board";
+  });
+
+  updateTopbar();
+}
+
+function updateTopbar() {
+  if (activeView === "home") {
+    elements.topbarTitle.textContent = "Home";
+    elements.topbarSubtitle.textContent = "Choose a board and unlock it with its own password.";
+    elements.topbarStatus.textContent = `${countUnlockedGames()} of ${GAME_KEYS.length} unlocked this session`;
+    document.title = "WQC Trading Helpers";
+    return;
+  }
+
+  const game = GAME_ACCESS[activeView];
+  elements.topbarTitle.textContent = game.title;
+  elements.topbarSubtitle.textContent = game.subtitle;
+  elements.topbarStatus.textContent = "Unlocked for this session";
+  document.title = `${game.shortTitle} · WQC Trading Helpers`;
+}
+
+function countUnlockedGames() {
+  return GAME_KEYS.filter((gameKey) => unlockedGames[gameKey]).length;
+}
+
+function createUnlockState() {
+  return GAME_KEYS.reduce((state, gameKey) => {
+    state[gameKey] = false;
+    return state;
+  }, {});
+}
+
+function loadUnlockedGames() {
+  const state = createUnlockState();
+
+  try {
+    const saved = window.sessionStorage.getItem(SESSION_UNLOCK_KEY);
+    if (!saved) {
+      return state;
+    }
+
+    const parsed = JSON.parse(saved);
+    GAME_KEYS.forEach((gameKey) => {
+      state[gameKey] = parsed[gameKey] === true;
+    });
+  } catch (error) {
+    console.warn("Unable to restore unlock state.", error);
+  }
+
+  return state;
+}
+
+function persistUnlockedGames() {
+  try {
+    window.sessionStorage.setItem(SESSION_UNLOCK_KEY, JSON.stringify(unlockedGames));
+  } catch (error) {
+    console.warn("Unable to persist unlock state.", error);
+  }
+}
+
+async function hashPassword(password) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error("Web Crypto unavailable");
+  }
+
+  const digestBuffer = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(digestBuffer), (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
 function bindButtons() {

@@ -11,44 +11,106 @@
     <main class="page-shell">
       <header class="topbar">
         <div class="topbar-copy">
-          <h1>WQC Trading Helpers</h1>
-          <p>Game 2, Game 3, and Game 5 in one board</p>
+          <span class="topbar-kicker">WQC Trading Helpers</span>
+          <h1 id="topbar-title">Home</h1>
+          <p id="topbar-subtitle">Choose a board and unlock it with its own password.</p>
         </div>
-        <div class="tablist" role="tablist" aria-label="Game Tabs">
-          <button
-            id="tab-octo"
-            class="tab-button is-active"
-            type="button"
-            role="tab"
-            aria-selected="true"
-            aria-controls="view-octo"
-          >
-            Game 2: Octomarket
-          </button>
-          <button
-            id="tab-triplets"
-            class="tab-button"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-controls="view-triplets"
-          >
-            Game 3: Triplets
-          </button>
-          <button
-            id="tab-auction"
-            class="tab-button"
-            type="button"
-            role="tab"
-            aria-selected="false"
-            aria-controls="view-auction"
-          >
-            Game 5: Auction
-          </button>
+        <div class="topbar-actions">
+          <div id="topbar-status" class="panel-note">0 of 3 unlocked this session</div>
+          <button id="home-button" class="button button-secondary hidden" type="button">Back Home</button>
         </div>
       </header>
 
-      <section id="view-octo" class="view is-active" role="tabpanel" aria-labelledby="tab-octo">
+      <section id="view-home" class="view is-active">
+        <section class="home-shell">
+          <article class="panel home-hero">
+            <span class="home-kicker">Launch Board</span>
+            <h2>Open the game you need, unlock it once, and keep the calculator ready for the rest of the session.</h2>
+            <p>
+              Each board now lives behind its own frontend password gate. Pick the game, enter its password, and jump
+              straight into the corresponding helper.
+            </p>
+          </article>
+
+          <section class="home-grid" aria-label="Game Launchers">
+            <article class="panel home-card" data-game-card="octo">
+              <div class="home-card-top">
+                <div class="home-card-copy">
+                  <span class="home-badge">Game 2</span>
+                  <h2>Octomarket</h2>
+                  <p>Expected values, exact payout distributions, and divisor math across the full board.</p>
+                </div>
+                <span class="home-card-status">Locked</span>
+              </div>
+              <div class="home-card-actions">
+                <button class="button button-primary home-enter-button" type="button" data-game-target="octo">
+                  Unlock Board
+                </button>
+                <span class="panel-note home-card-note">Password required</span>
+              </div>
+            </article>
+
+            <article class="panel home-card" data-game-card="triplets">
+              <div class="home-card-top">
+                <div class="home-card-copy">
+                  <span class="home-badge">Game 3</span>
+                  <h2>Triplets</h2>
+                  <p>Posterior fair values, combo identity pricing, and live buy or sell guidance.</p>
+                </div>
+                <span class="home-card-status">Locked</span>
+              </div>
+              <div class="home-card-actions">
+                <button class="button button-primary home-enter-button" type="button" data-game-target="triplets">
+                  Unlock Board
+                </button>
+                <span class="panel-note home-card-note">Password required</span>
+              </div>
+            </article>
+
+            <article class="panel home-card" data-game-card="auction">
+              <div class="home-card-top">
+                <div class="home-card-copy">
+                  <span class="home-badge">Game 5</span>
+                  <h2>Infinite Auction</h2>
+                  <p>Track cumulative bid penalty, per-round edge, and safe-bid cutoffs in one place.</p>
+                </div>
+                <span class="home-card-status">Locked</span>
+              </div>
+              <div class="home-card-actions">
+                <button class="button button-primary home-enter-button" type="button" data-game-target="auction">
+                  Unlock Board
+                </button>
+                <span class="panel-note home-card-note">Password required</span>
+              </div>
+            </article>
+          </section>
+        </section>
+      </section>
+
+      <div id="password-modal" class="password-modal hidden" aria-hidden="true">
+        <div class="password-dialog" role="dialog" aria-modal="true" aria-labelledby="password-title">
+          <div class="password-dialog-header">
+            <div class="password-dialog-copy">
+              <span id="password-game-label" class="panel-note">Protected Board</span>
+              <h2 id="password-title">Unlock Board</h2>
+            </div>
+            <button id="password-cancel" class="button button-secondary" type="button">Cancel</button>
+          </div>
+          <p id="password-description" class="password-description">Enter the password for this board.</p>
+          <form id="password-form" class="password-form">
+            <label class="field" for="password-input">
+              <span class="field-label">Password</span>
+              <input id="password-input" class="market-input password-input" type="password" autocomplete="off" />
+            </label>
+            <div id="password-message" class="validation hidden" role="alert"></div>
+            <div class="password-actions">
+              <button id="password-submit" class="button button-primary" type="submit">Unlock</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <section id="view-octo" class="view">
         <section class="workspace">
           <section class="panel input-panel">
             <div class="panel-header">
@@ -84,7 +146,7 @@
         </section>
       </section>
 
-      <section id="view-triplets" class="view" role="tabpanel" aria-labelledby="tab-triplets">
+      <section id="view-triplets" class="view">
         <section class="workspace">
           <section class="panel input-panel">
             <div class="panel-header">
@@ -185,7 +247,7 @@
         </section>
       </section>
 
-      <section id="view-auction" class="view" role="tabpanel" aria-labelledby="tab-auction">
+      <section id="view-auction" class="view">
         <section class="workspace">
           <section class="panel input-panel">
             <div class="panel-header">
